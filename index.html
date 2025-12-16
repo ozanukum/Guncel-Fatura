@@ -171,9 +171,9 @@
         localStorage.setItem("__test", "1");
         const ok = localStorage.getItem("__test") === "1";
         localStorage.removeItem("__test");
-        el.textContent = ok ? "Kayıt sistemi: AKTİF ✅" : "Kayıt sistemi: PASİF ❌";
+        el.textContent = ok ? "AKTİF ✅" : "Kayıt sistemi: PASİF ❌";
       } catch (e) {
-        el.textContent = "Kayıt sistemi: PASİF ❌";
+        el.textContent = "PASİF ❌";
       }
     }
 
