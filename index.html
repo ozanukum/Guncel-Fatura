@@ -1,90 +1,61 @@
 <script>
-  const STORAGE_KEY = "ananem_fatura_kayit_v1";
+(function () {
+  const STORAGE_KEY = "ananem_fatura_v1";
 
   function temizleVeSayiyaCevir(deger) {
     if (!deger) return 0;
-    deger = deger.toString().trim().replace(/\s/g, "");
+    deger = String(deger).trim().replace(/\s/g, "");
 
-    // 1.234,56 => 1234.56
     if (deger.includes(".") && deger.includes(",")) {
       deger = deger.replace(/\./g, "").replace(",", ".");
-    } else {
-      // 12,34 => 12.34
-      if (deger.includes(",")) deger = deger.replace(",", ".");
-      // 12.34 => 12.34 (aynen)
+    } else if (deger.includes(",")) {
+      deger = deger.replace(",", ".");
     }
 
-    const sayi = Number(deger);
-    return isNaN(sayi) ? 0 : sayi;
+    const n = Number(deger);
+    return isNaN(n) ? 0 : n;
   }
 
-  function formatTL(sayi) {
-    return sayi.toLocaleString("tr-TR", {
+  function formatTL(n) {
+    return n.toLocaleString("tr-TR", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }) + " ₺";
   }
 
-  function hesaplaToplamlar() {
-    let toplamElektrik = 0;
-    let toplamSu = 0;
-
-    document.querySelectorAll(".elektrik").forEach(inp => {
-      toplamElektrik += temizleVeSayiyaCevir(inp.value);
-    });
-    document.querySelectorAll(".su").forEach(inp => {
-      toplamSu += temizleVeSayiyaCevir(inp.value);
-    });
-
-    document.getElementById("elektrikToplam").textContent = formatTL(toplamElektrik);
-    document.getElementById("suToplam").textContent = formatTL(toplamSu);
-    document.getElementById("genelToplam").textContent = formatTL(toplamElektrik + toplamSu);
+  function hesapla() {
+    let e = 0, s = 0;
+    document.querySelectorAll(".elektrik").forEach(i => e += temizleVeSayiyaCevir(i.value));
+    document.querySelectorAll(".su").forEach(i => s += temizleVeSayiyaCevir(i.value));
+    document.getElementById("elektrikToplam").textContent = formatTL(e);
+    document.getElementById("suToplam").textContent = formatTL(s);
+    document.getElementById("genelToplam").textContent = formatTL(e + s);
   }
 
   function kaydet() {
-    const inputs = Array.from(document.querySelectorAll("tbody input[type='text']"));
-    const data = inputs.map(i => i.value || "");
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      // iOS bazen storage kapatabiliyor; sessiz geçiyoruz
-      console.log("Kayıt yapılamadı:", e);
-    }
+    const vals = [...document.querySelectorAll("tbody input")].map(i => i.value);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(vals));
   }
 
   function yukle() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const data = JSON.parse(raw);
-
-      const inputs = Array.from(document.querySelectorAll("tbody input[type='text']"));
-      inputs.forEach((inp, idx) => {
-        if (data[idx] !== undefined) inp.value = data[idx];
-      });
-    } catch (e) {
-      console.log("Yükleme yapılamadı:", e);
-    }
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const vals = JSON.parse(raw);
+    [...document.querySelectorAll("tbody input")].forEach((i, idx) => {
+      if (vals[idx] !== undefined) i.value = vals[idx];
+    });
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", function () {
     yukle();
-    hesaplaToplamlar();
+    hesapla();
 
-    // Her değişiklikte kaydet + gerekiyorsa hesapla
-    document.querySelectorAll("tbody input[type='text']").forEach(inp => {
-      inp.addEventListener("input", () => {
-        if (inp.classList.contains("elektrik") || inp.classList.contains("su")) {
-          hesaplaToplamlar();
-        }
+    document.querySelectorAll("tbody input").forEach(i => {
+      i.addEventListener("input", function () {
+        hesapla();
         kaydet();
       });
     });
-
-    // iOS’ta “kapatma/arka plana alma” için ekstra güvence
-    window.addEventListener("pagehide", kaydet);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") kaydet();
-    });
   });
+})();
 </script>
