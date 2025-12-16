@@ -1,90 +1,199 @@
-<script>
-  const STORAGE_KEY = "ananem_fatura_v1";
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Elektrik ve Su Faturaları</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; background:#f4f4f4; margin:0; padding:20px; }
+    .container { max-width:900px; margin:0 auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+    h1 { text-align:center; margin-bottom:20px; }
+    .table-wrapper { width:100%; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; margin-bottom:15px; }
+    th, td { border:1px solid #ddd; padding:8px; text-align:center; }
+    th { background:#f0f0f0; }
+    tfoot td { font-weight:bold; background:#fafafa; }
 
-  function temizleVeSayiyaCevir(deger) {
-    if (!deger) return 0;
-    deger = deger.toString().trim().replace(/\s/g, "");
+    input.elektrik { width:70px; }
+    input.su { width:70px; }
 
-    if (deger.includes(".") && deger.includes(",")) {
-      deger = deger.replace(/\./g, "").replace(",", ".");
-    } else {
-      if (deger.includes(",")) deger = deger.replace(",", ".");
+    input[type="text"] {
+      padding:4px; border:1px solid #ccc; border-radius:3px;
+      box-sizing:border-box; text-align:right;
     }
 
-    const sayi = Number(deger);
-    return isNaN(sayi) ? 0 : sayi;
-  }
+    .label-cell { text-align:right !important; padding-right:10px; }
+    .total-cell { text-align:right !important; padding-right:10px; }
 
-  function formatTL(sayi) {
-    return sayi.toLocaleString("tr-TR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }) + " ₺";
-  }
+    #genelToplam, .genel-label { color:red; font-weight:bold; }
 
-  function hesaplaToplamlar() {
-    let toplamElektrik = 0;
-    let toplamSu = 0;
-
-    document.querySelectorAll(".elektrik").forEach(inp => {
-      toplamElektrik += temizleVeSayiyaCevir(inp.value);
-    });
-
-    document.querySelectorAll(".su").forEach(inp => {
-      toplamSu += temizleVeSayiyaCevir(inp.value);
-    });
-
-    document.getElementById("elektrikToplam").textContent = formatTL(toplamElektrik);
-    document.getElementById("suToplam").textContent = formatTL(toplamSu);
-    document.getElementById("genelToplam").textContent = formatTL(toplamElektrik + toplamSu);
-  }
-
-  function kaydet() {
-    const inputs = Array.from(document.querySelectorAll("tbody input[type='text']"));
-    const data = inputs.map(i => i.value || "");
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      // iOS bazı durumlarda storage'ı kısıtlayabilir
-      console.log("Kayıt yapılamadı:", e);
+    @media (max-width:600px){
+      body{ padding:8px; }
+      .container{ padding:10px; border-radius:6px; }
+      h1{ font-size:18px; margin-bottom:12px; }
+      th, td{ padding:4px; font-size:12px; }
+      input[type="text"]{ font-size:12px; padding:3px; }
+      input.elektrik, input.su{ width:60px; }
     }
-  }
+  </style>
+</head>
 
-  function yukle() {
-    try {
+<body>
+  <div class="container">
+    <h1>Ananem Elektrik ve Su Faturaları</h1>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>DÖNEM</th>
+            <th>ELEKTRİK (₺)</th>
+            <th>SU (₺)</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><input type="text"></td>
+            <td><input type="text" class="elektrik" placeholder="₺"></td>
+            <td><input type="text" class="su" placeholder="₺"></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><input type="text"></td>
+            <td><input type="text" class="elektrik" placeholder="₺"></td>
+            <td><input type="text" class="su" placeholder="₺"></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><input type="text"></td>
+            <td><input type="text" class="elektrik" placeholder="₺"></td>
+            <td><input type="text" class="su" placeholder="₺"></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><input type="text"></td>
+            <td><input type="text" class="elektrik" placeholder="₺"></td>
+            <td><input type="text" class="su" placeholder="₺"></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><input type="text"></td>
+            <td><input type="text" class="elektrik" placeholder="₺"></td>
+            <td><input type="text" class="su" placeholder="₺"></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><input type="text"></td>
+            <td><input type="text" class="elektrik" placeholder="₺"></td>
+            <td><input type="text" class="su" placeholder="₺"></td>
+          </tr>
+        </tbody>
+
+        <tfoot>
+          <tr>
+            <td colspan="3" class="label-cell">Elektrik Toplam</td>
+            <td class="total-cell" id="elektrikToplam">0,00 ₺</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="label-cell">Su Toplam</td>
+            <td class="total-cell" id="suToplam">0,00 ₺</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="label-cell genel-label">Genel Toplam</td>
+            <td class="total-cell" id="genelToplam">0,00 ₺</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div id="storageDurum" style="text-align:center;font-size:12px;color:#666;margin-top:8px"></div>
+  </div>
+
+  <script>
+    // iPhone'da beyaz ekran olmasın: hata olursa ekrana bas
+    window.onerror = function (msg, src, line, col) {
+      document.body.innerHTML =
+        "<pre style='white-space:pre-wrap;font:14px/1.4 monospace;padding:12px;color:#b00020'>" +
+        "HATA: " + msg + "\n" + src + "\nSatır: " + line + ":" + col +
+        "</pre>";
+      return true;
+    };
+
+    const STORAGE_KEY = "ananem_fatura_v1";
+
+    function temizleVeSayiyaCevir(deger) {
+      if (!deger) return 0;
+      deger = String(deger).trim().replace(/\s/g, "");
+
+      if (deger.includes(".") && deger.includes(",")) {
+        deger = deger.replace(/\./g, "").replace(",", ".");
+      } else if (deger.includes(",")) {
+        deger = deger.replace(",", ".");
+      }
+
+      const n = Number(deger);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function formatTL(n) {
+      return n.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ₺";
+    }
+
+    function hesaplaToplamlar() {
+      let e = 0, s = 0;
+      document.querySelectorAll(".elektrik").forEach(i => e += temizleVeSayiyaCevir(i.value));
+      document.querySelectorAll(".su").forEach(i => s += temizleVeSayiyaCevir(i.value));
+
+      document.getElementById("elektrikToplam").textContent = formatTL(e);
+      document.getElementById("suToplam").textContent = formatTL(s);
+      document.getElementById("genelToplam").textContent = formatTL(e + s);
+    }
+
+    function kaydet() {
+      const vals = Array.from(document.querySelectorAll("tbody input[type='text']")).map(i => i.value || "");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(vals));
+    }
+
+    function yukle() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
-      const data = JSON.parse(raw);
-
+      const vals = JSON.parse(raw);
       const inputs = Array.from(document.querySelectorAll("tbody input[type='text']"));
-      inputs.forEach((inp, i) => {
-        if (data[i] !== undefined) inp.value = data[i];
-      });
-    } catch (e) {
-      console.log("Yükleme yapılamadı:", e);
+      inputs.forEach((i, idx) => { if (vals[idx] !== undefined) i.value = vals[idx]; });
     }
-  }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    // önce yükle
-    yukle();
-    // sonra hesapla
-    hesaplaToplamlar();
+    function storageTest() {
+      const el = document.getElementById("storageDurum");
+      try {
+        localStorage.setItem("__test", "1");
+        const ok = localStorage.getItem("__test") === "1";
+        localStorage.removeItem("__test");
+        el.textContent = ok ? "Kayıt sistemi: AKTİF ✅" : "Kayıt sistemi: PASİF ❌";
+      } catch (e) {
+        el.textContent = "Kayıt sistemi: PASİF ❌";
+      }
+    }
 
-    // tüm inputlarda değiştikçe kaydet + gerekiyorsa hesapla
-    document.querySelectorAll("tbody input[type='text']").forEach(inp => {
-      inp.addEventListener("input", () => {
-        if (inp.classList.contains("elektrik") || inp.classList.contains("su")) {
+    document.addEventListener("DOMContentLoaded", () => {
+      storageTest();
+      yukle();
+      hesaplaToplamlar();
+
+      document.querySelectorAll("tbody input[type='text']").forEach(inp => {
+        inp.addEventListener("input", () => {
           hesaplaToplamlar();
-        }
-        kaydet();
+          kaydet();
+        });
+      });
+
+      window.addEventListener("pagehide", kaydet);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") kaydet();
       });
     });
-
-    // iOS'ta ekstra güvence: sayfadan çıkarken de kaydet
-    window.addEventListener("pagehide", kaydet);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") kaydet();
-    });
-  });
-</script>
+  </script>
+</body>
+</html>
